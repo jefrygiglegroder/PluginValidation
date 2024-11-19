@@ -1,0 +1,9 @@
+{
+    "approvedServers": [
+        {
+            "serverId": "example-uuid-1234",
+            "ip": "192.168.1.1",
+            "hostname": "example.com"
+        }
+    ]
+}
