@@ -2,92 +2,66 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Server Validation</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        .form-group {
-            margin-bottom: 10px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-        }
-        input {
-            padding: 8px;
-            width: 100%;
-            max-width: 400px;
-        }
-        button {
-            padding: 10px 15px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
+        body { font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; }
+        .error { color: red; }
+        .success { color: green; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input { width: 100%; padding: 8px; }
+        button { padding: 10px; background-color: #4CAF50; color: white; border: none; }
     </style>
 </head>
 <body>
-    <h1>Validate Server</h1>
+    <h2>Server Validation</h2>
     <form id="validationForm">
         <div class="form-group">
-            <label for="serverId">Server UUID</label>
-            <input type="text" id="serverId" placeholder="Enter Server UUID" required>
+            <label for="serverId">Server UUID:</label>
+            <input type="text" id="serverId" required pattern="[0-9a-fA-F-]{36}" placeholder="Enter unique server UUID">
         </div>
         <div class="form-group">
-            <label for="serverIp">Server IP</label>
-            <input type="text" id="serverIp" placeholder="Enter Server IP" required>
+            <label for="serverIp">Server IP:</label>
+            <input type="text" id="serverIp" required placeholder="Enter server IP address">
         </div>
         <div class="form-group">
-            <label for="hostname">Hostname</label>
-            <input type="text" id="hostname" placeholder="Enter Server Hostname" required>
+            <label for="hostname">Hostname:</label>
+            <input type="text" id="hostname" required placeholder="Enter server hostname">
         </div>
-        <button type="button" id="validateButton">Validate Server</button>
+        <button type="submit">Validate Server</button>
     </form>
-
-    <div id="responseMessage" style="margin-top: 20px;"></div>
+    <div id="responseMessage"></div>
 
     <script>
-        const validateButton = document.getElementById('validateButton');
-        const responseMessage = document.getElementById('responseMessage');
+    document.getElementById('validationForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const responseDiv = document.getElementById('responseMessage');
+        
+        const serverId = document.getElementById('serverId').value;
+        const serverIp = document.getElementById('serverIp').value;
+        const hostname = document.getElementById('hostname').value;
 
-        validateButton.addEventListener('click', async () => {
-            const serverId = document.getElementById('serverId').value;
-            const serverIp = document.getElementById('serverIp').value;
-            const hostname = document.getElementById('hostname').value;
+        try {
+            const response = await axios.post('/validate', { 
+                serverId, 
+                serverIp, 
+                hostname 
+            });
 
-            if (!serverId || !serverIp || !hostname) {
-                responseMessage.textContent = "Please fill in all fields.";
-                return;
-            }
-
-            const payload = { serverId, serverIp, hostname };
-
-            try {
-                const response = await fetch('https://your-backend.com/validate', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
-                });
-
-                const data = await response.json();
-                if (response.ok) {
-                    responseMessage.textContent = "Server validated successfully!";
-                } else {
-                    responseMessage.textContent = `Error: ${data.message}`;
-                }
-            } catch (error) {
-                responseMessage.textContent = `Error: ${error.message}`;
-            }
-        });
+            responseDiv.innerHTML = `
+                <p class="success">${response.data.message}</p>
+                <p>Validation Token: <strong>${response.data.validationToken}</strong></p>
+                <p>Please save this token for future reference.</p>
+            `;
+        } catch (error) {
+            responseDiv.innerHTML = `
+                <p class="error">
+                    ${error.response ? error.response.data.message : 'Validation failed'}
+                </p>
+            `;
+        }
+    });
     </script>
 </body>
 </html>
